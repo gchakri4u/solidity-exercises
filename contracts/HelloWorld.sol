@@ -2,6 +2,8 @@
 pragma solidity >=0.4.22 <0.9.0;
 
 contract HelloWorld {
-  constructor() public {
-  }
+    string public greet;
+    constructor() {
+        greet = "Hello World";
+    }
 }
