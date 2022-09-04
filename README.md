@@ -47,6 +47,19 @@ truffle create contract <ContractName>
 Build Contracts
 Deploy Contracts
 ```
+9. Connect to truffle console
+```
+truffle console --network development
+let contract = await Arrays.deployed()
+contract.pushElement(10)
+contract.pushElement(20)
+contract.pushElement(30)
+contract.printArray()
+```
+10. Redeploy the contracts
+```
+truffle migrate --reset
+```
 ##  Git Steps for Feature Branches
 
 Create a new branch
