@@ -42,6 +42,11 @@ truffle init
 ```
 truffle create contract <ContractName>
 ```
+8. Install Truffle for VS Code extension. This provides the following actions
+```
+Build Contracts
+Deploy Contracts
+```
 ##  Git Steps for Feature Branches
 
 Create a new branch
