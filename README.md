@@ -53,7 +53,7 @@ Create a new branch
 Get latest changes
 
 ```
-    git pull 
+    git pull
 ```
 
 **Commiting changes to branch:**

@@ -1,6 +1,6 @@
-var CountManager = artifacts.require("./CountManager.sol");
+var Arrays = artifacts.require("./Arrays.sol");
 
 
 module.exports = function(deployer) {  
-  deployer.deploy(CountManager);
+  deployer.deploy(Arrays);
 };

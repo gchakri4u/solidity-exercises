@@ -2,17 +2,25 @@
 pragma solidity >=0.4.22 <0.9.0;
 
 contract Arrays {
-    int256[] arr;
+    int256[] public arr;
 
-    function addElement(int256 x) public {
+    function pushElement(int256 x) public {
         arr.push(x);
     }
 
-    function remove(uint256 index) public {
+    function popElement() public {
+        arr.pop();
+    }
+
+    function deleteElement(uint256 index) public {
         delete arr[index];
     }
 
-    function get(uint256 index) public view returns (int256) {
+    function getElement(uint256 index) public view returns (int256) {
         return arr[index];
+    }
+
+    function printArray() public view returns (int256[] memory, uint256) {
+        return (arr, arr.length);
     }
 }
