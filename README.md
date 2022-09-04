@@ -60,6 +60,21 @@ contract.printArray()
 ```
 truffle migrate --reset
 ```
+
+##  Deploying contract and calling contract functions to prod/test networks through remix
+
+1. Go to DEPLOY & RUN TRANSACTIONS Tab in remix
+
+2. From ENVIRONMENT dropdown choose
+```
+ Injected Provider - Metamask
+```
+This will connect to Network we selected in Metamask Wallet and also loads Account information from metamask
+
+3. We can deploy the contract to test network or pull the existing contract from the test network
+
+4. Call functions on the contract
+
 ##  Git Steps for Feature Branches
 
 Create a new branch
