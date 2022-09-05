@@ -51,13 +51,15 @@ contract BiddingNFT is ERC721, ERC721Burnable, Ownable {
     function createAuction(uint256 tokenId) public onlyOwner {
         uint256 auctionId = _auctionIdCounter.current();
         tokenToAuctions[tokenId] = auctionId;
-        auctionDetails[auctionId] = AuctionDetailsStruct({
-            auctionId: auctionId,
-            tokenId: tokenId,
-            isOpen: true,
-            highestBidder: address(0),
-            highestBidderPrice: 0
-        });
+        AuctionDetailsStruct
+            memory currentAuctionDetails = AuctionDetailsStruct({
+                auctionId: auctionId,
+                tokenId: tokenId,
+                isOpen: true,
+                highestBidder: address(0),
+                highestBidderPrice: 0
+            });
+        auctionDetails.push(currentAuctionDetails);
     }
 
     function bid(
