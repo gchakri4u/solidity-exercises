@@ -10,14 +10,19 @@ contract BiddingNFT is ERC721, ERC721Burnable, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
     Counters.Counter private _auctionIdCounter;
+
     TokenDetailsStruct[] private tokenDetails;
     AuctionDetailsStruct[] private auctionDetails;
-    mapping(uint256 => uint256) private tokenToAuctions;
+    mapping(uint256 => TokenToAuctionsStruct) private tokenToAuctions;
 
     // Tokenid is the index of the Array.
     struct TokenDetailsStruct {
         string tokenURI;
         uint256 minBidPrice;
+    }
+    struct TokenToAuctionsStruct {
+        uint256 auctionId;
+        bool isExists;
     }
 
     struct AuctionDetailsStruct {
@@ -30,13 +35,25 @@ contract BiddingNFT is ERC721, ERC721Burnable, Ownable {
 
     constructor() ERC721("BiddingNFT", "BFT") {}
 
-    event TokenMintComplete();
+    event TokenMintStart(
+        address _invoker,
+        string _tokenURI,
+        uint256 _minBidPrice
+    );
+
+    event TokenMintComplete(
+        address _invoker,
+        uint256 _tokenId,
+        string _tokenURI,
+        uint256 _minBidPrice
+    );
 
     //Only Owner Can Mint NFT's
     function safeMint(string memory tokenURI, uint256 minBidPrice)
         public
         onlyOwner
     {
+        emit TokenMintStart(msg.sender, tokenURI, minBidPrice);
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         _safeMint(msg.sender, tokenId);
@@ -45,12 +62,22 @@ contract BiddingNFT is ERC721, ERC721Burnable, Ownable {
             minBidPrice: minBidPrice
         });
         tokenDetails.push(currentTokenDetails);
-        emit TokenMintComplete();
+        emit TokenMintComplete(msg.sender, tokenId, tokenURI, minBidPrice);
     }
 
-    function createAuction(uint256 tokenId) public onlyOwner {
+    function openAuction(uint256 tokenId) public onlyOwner {
+        require(
+            tokenToAuctions[tokenId].isExists == false ||
+                (tokenToAuctions[tokenId].isExists == true &&
+                    auctionDetails[tokenToAuctions[tokenId].auctionId].isOpen ==
+                    false),
+            "Auction already exists"
+        );
         uint256 auctionId = _auctionIdCounter.current();
-        tokenToAuctions[tokenId] = auctionId;
+        tokenToAuctions[tokenId] = TokenToAuctionsStruct({
+            auctionId: auctionId,
+            isExists: true
+        });
         AuctionDetailsStruct
             memory currentAuctionDetails = AuctionDetailsStruct({
                 auctionId: auctionId,
@@ -62,50 +89,65 @@ contract BiddingNFT is ERC721, ERC721Burnable, Ownable {
         auctionDetails.push(currentAuctionDetails);
     }
 
-    function bid(
-        uint256 tokenId,
-        address bidder,
-        uint256 bidPrice
-    ) public {
-        uint256 auctionId = tokenToAuctions[tokenId];
+    function bid(uint256 tokenId, uint256 bidPrice) public {
+        require(ownerOf(tokenId) != msg.sender, "Owner Should not bid");
+        require(
+            tokenToAuctions[tokenId].isExists == true &&
+                auctionDetails[tokenToAuctions[tokenId].auctionId].isOpen ==
+                true,
+            "Auction is Closed"
+        );
+        uint256 auctionId = tokenToAuctions[tokenId].auctionId;
         AuctionDetailsStruct memory currentAuctionDetails = auctionDetails[
             auctionId
         ];
         //TODO: Add Time Based Bid close checks
-        require(currentAuctionDetails.isOpen == true, "Auction is Closed");
         require(
-            bidPrice <= currentAuctionDetails.highestBidderPrice,
+            bidPrice >= tokenDetails[tokenId].minBidPrice &&
+                bidPrice >= currentAuctionDetails.highestBidderPrice,
             "Need to bid more than the Highest bid"
         );
-        auctionDetails[auctionId].highestBidder = bidder;
+        auctionDetails[auctionId].highestBidder = msg.sender;
         auctionDetails[auctionId].highestBidderPrice = bidPrice;
     }
 
     function closeAuction(uint256 tokenId) public onlyOwner {
-        uint256 auctionId = tokenToAuctions[tokenId];
         require(
-            auctionDetails[auctionId].isOpen == false,
-            "Auction is already Closed"
+            tokenToAuctions[tokenId].isExists == true &&
+                auctionDetails[tokenToAuctions[tokenId].auctionId].isOpen ==
+                true,
+            "Auction is Closed"
         );
+        uint256 auctionId = tokenToAuctions[tokenId].auctionId;
         auctionDetails[auctionId].isOpen = false;
+        if (auctionDetails[auctionId].highestBidder == address(0)) {
+            cleanup(tokenId);
+        } else {
+            super.approve(auctionDetails[auctionId].highestBidder, tokenId);
+        }
     }
 
-    function buyToken(uint256 tokenId) public payable {
-        uint256 auctionId = tokenToAuctions[tokenId];
+    function buyToken(uint256 tokenId) public payable returns (bool) {
         require(
-            auctionDetails[auctionId].isOpen == true,
-            "Auction is still Open"
+            tokenToAuctions[tokenId].isExists == true &&
+                auctionDetails[tokenToAuctions[tokenId].auctionId].isOpen ==
+                false,
+            "Auction is Still Open"
         );
+        uint256 auctionId = tokenToAuctions[tokenId].auctionId;
         require(
-            msg.sender != auctionDetails[auctionId].highestBidder,
+            msg.sender == auctionDetails[auctionId].highestBidder,
             "You are not eligible to buy token"
         );
         require(
-            msg.value != auctionDetails[auctionId].highestBidderPrice,
-            "You should be sending money that equals your bid price"
+            msg.value >= auctionDetails[auctionId].highestBidderPrice,
+            "You should be sending money atleast your bid price"
         );
         super.safeTransferFrom(ownerOf(tokenId), msg.sender, tokenId);
+        (bool sent, ) = payable(ownerOf(tokenId)).call{value: msg.value}("");
+        require(sent == true, "Failed to send Ether to Owner of token");
         cleanup(tokenId);
+        return sent;
     }
 
     function cleanup(uint256 tokenId) private {
