@@ -1,6 +1,6 @@
-var Arrays = artifacts.require("./Arrays.sol");
+var BiddingNFT = artifacts.require("./BiddingNFT.sol");
 
 
 module.exports = function(deployer) {  
-  deployer.deploy(Arrays);
+  deployer.deploy(BiddingNFT);
 };

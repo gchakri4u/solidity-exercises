@@ -1,0 +1,25 @@
+{
+  "name": "solidity-exercises",
+  "version": "1.0.0",
+  "description": "Solidity Exercises",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gchakri4u/solidity-exercises.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gchakri4u/solidity-exercises/issues"
+  },
+  "homepage": "https://github.com/gchakri4u/solidity-exercises#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.7.3"
+  }
+}
