@@ -127,7 +127,15 @@ contract BiddingNFT is ERC721, ERC721Burnable, Ownable {
         }
     }
 
-    function buyToken(uint256 tokenId) public payable returns (bool) {
+    function buyToken(uint256 tokenId)
+        public
+        payable
+        returns (
+            address,
+            bool,
+            uint256
+        )
+    {
         require(
             tokenToAuctions[tokenId].isExists == true &&
                 auctionDetails[tokenToAuctions[tokenId].auctionId].isOpen ==
@@ -140,14 +148,15 @@ contract BiddingNFT is ERC721, ERC721Burnable, Ownable {
             "You are not eligible to buy token"
         );
         require(
-            msg.value >= auctionDetails[auctionId].highestBidderPrice,
+            msg.value == auctionDetails[auctionId].highestBidderPrice,
             "You should be sending money atleast your bid price"
         );
-        super.safeTransferFrom(ownerOf(tokenId), msg.sender, tokenId);
-        (bool sent, ) = payable(ownerOf(tokenId)).call{value: msg.value}("");
+        address tokenOwner = ownerOf(tokenId);
+        super.safeTransferFrom(tokenOwner, msg.sender, tokenId);
+        (bool sent, ) = payable(tokenOwner).call{value: msg.value}("");
         require(sent == true, "Failed to send Ether to Owner of token");
         cleanup(tokenId);
-        return sent;
+        return (tokenOwner, sent, msg.value);
     }
 
     function cleanup(uint256 tokenId) private {
