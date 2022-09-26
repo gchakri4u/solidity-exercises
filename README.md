@@ -1,8 +1,6 @@
 ## solidity-exercises
 
-## Important Links
-
-## Setting Up Windows workstation
+## Setting Up Mac
 
 
 1. Install HomeBrew from website
